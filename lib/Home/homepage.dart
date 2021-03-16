@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_link_preview/flutter_link_preview.dart';
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 var midSlider, linkList;
 
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
       loading = false;
     });
     print("\n\n\n");
+    print(linkList.docs[0]["im"][0]);
   }
 
   @override
@@ -122,8 +124,8 @@ class _HomePageState extends State<HomePage> {
                         },
                         child: Container(
                             width: MediaQuery.of(context).size.width,
-                            child: Image.network(
-                              midSlider.docs[index]["img"],
+                            child: CachedNetworkImage(
+                              imageUrl: midSlider.docs[index]["img"],
                               fit: BoxFit.cover,
                             )),
                       ),
@@ -136,81 +138,94 @@ class _HomePageState extends State<HomePage> {
                 ? Container()
                 : Expanded(
                     child: Container(
-                        child: DraggableScrollbar.semicircle(
-                      controller: _controller,
-                      child: ListView.builder(
-                          physics: BouncingScrollPhysics(),
-                          controller: _controller,
-                          itemCount: linkList.docs.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 10, right: 10),
-                                  child: Container(
-                                    padding: EdgeInsets.all(13),
-                                    decoration: BoxDecoration(
-                                        color: Color(0xffF1F1F1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(33))),
-                                    child: Column(
-                                      children: [
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 20,
-                                            ),
-                                            Text(
-                                              linkList.docs[index]["name"],
-                                              style: TextStyle(fontSize: 20),
-                                            ),
-                                            Spacer(),
-                                            Icon(Icons.favorite_border),
-                                            SizedBox(
-                                              width: 20,
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          height: 20,
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(33))),
-                                          padding: EdgeInsets.all(18),
-                                          child: FlutterLinkPreview(
-                                            url: linkList.docs[index]["url"],
+                        child: ListView.builder(
+                            physics: BouncingScrollPhysics(),
+                            controller: _controller,
+                            itemCount: linkList.docs.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 10, right: 10),
+                                    child: Container(
+                                      padding: EdgeInsets.all(13),
+                                      decoration: BoxDecoration(
+                                          color: Color(0xffF1F1F1),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(33))),
+                                      child: Column(
+                                        children: [
+                                          SizedBox(
+                                            height: 10,
                                           ),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(33))),
-                                          child: Image.network(
-                                            linkList.docs[index]["img"],
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 20,
+                                              ),
+                                              Text(
+                                                linkList.docs[index]["name"],
+                                                style: TextStyle(fontSize: 20),
+                                              ),
+                                              Spacer(),
+                                              Icon(Icons.favorite_border),
+                                              SizedBox(
+                                                width: 20,
+                                              ),
+                                            ],
                                           ),
-                                        )
-                                      ],
+                                          SizedBox(
+                                            height: 20,
+                                          ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(33))),
+                                            padding: EdgeInsets.all(18),
+                                            child: FlutterLinkPreview(
+                                              url: linkList.docs[index]["url"],
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          CarouselSlider.builder(
+                                              options: CarouselOptions(
+                                                height: 200,
+                                                autoPlay: true,
+                                                viewportFraction: 1,
+                                                autoPlayInterval:
+                                                    Duration(seconds: 4),
+                                                autoPlayAnimationDuration:
+                                                    Duration(milliseconds: 800),
+                                                autoPlayCurve:
+                                                    Curves.decelerate,
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                              ),
+                                              itemCount: linkList
+                                                  .docs[index]["img"].length,
+                                              itemBuilder:
+                                                  (BuildContext context,
+                                                          int index1,
+                                                          int itemIndex) =>
+                                                      CachedNetworkImage(
+                                                          fit: BoxFit.cover,
+                                                          imageUrl: linkList
+                                                                  .docs[index]
+                                                              ["img"][index1]))
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                )
-                              ],
-                            );
-                          }),
-                    )),
+                                  SizedBox(
+                                    height: 10,
+                                  )
+                                ],
+                              );
+                            })),
                   )
           ],
         ),

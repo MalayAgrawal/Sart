@@ -31,6 +31,7 @@ dependencies:
   draggable_scrollbar: ^0.0.4
   cloud_firestore:
   firebase_core :
+  cached_network_image: ^2.5.1
 
 dev_dependencies:
   flutter_test:
