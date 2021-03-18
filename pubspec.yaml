@@ -32,7 +32,8 @@ dependencies:
   cloud_firestore:
   firebase_core :
   cached_network_image: ^2.5.1
-
+  
+  flutter_inappwebview: ^5.1.0+4
 dev_dependencies:
   flutter_test:
     sdk: flutter
