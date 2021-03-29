@@ -8,6 +8,8 @@ import 'package:flutter_link_preview/flutter_link_preview.dart';
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sart/Home/database.dart';
+import 'package:sart/Home/favoritePage.dart';
 
 var midSlider, linkList;
 
@@ -23,18 +25,25 @@ class _HomePageState extends State<HomePage> {
       activeWebView = false;
   double loadingbar = 0;
   String passedUrl = '';
-
+  List<String> favo = [], favoName = [];
   final ScrollController _controller = ScrollController();
   InAppWebViewController _webViewController;
   void getData() async {
     await Firebase.initializeApp();
     midSlider = await FirebaseFirestore.instance.collection("MidSlider").get();
     linkList = await FirebaseFirestore.instance.collection("AllLinks").get();
+    favo = await MySharedPreferences.getListData("favo");
+    favoName = await MySharedPreferences.getListData("favoName");
+    if (favo == null || favoName == null) {
+      await MySharedPreferences.setListData("favo", []);
+      await MySharedPreferences.setListData("favoName", []);
+      favo = await MySharedPreferences.getListData("favo");
+      favoName = await MySharedPreferences.getListData("favoName");
+    }
+
     setState(() {
       loading = false;
     });
-    print("\n\n\n");
-    print(linkList.docs[0]["im"][0]);
   }
 
   Future<bool> backButtonControl() {
@@ -56,7 +65,7 @@ class _HomePageState extends State<HomePage> {
           closeMidSlider = true;
         });
       }
-      if (closeMidSlider && _controller.offset < -110) {
+      if (closeMidSlider && _controller.offset < -50) {
         setState(() {
           closeMidSlider = false;
         });
@@ -77,239 +86,87 @@ class _HomePageState extends State<HomePage> {
               color: Colors.white,
               child: Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xffcecece),
-                        borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(25),
-                            bottomRight: Radius.circular(25))),
-                    height: 110,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.only(left: 30, bottom: 33),
-                          child: Icon(
-                            Icons.list,
-                            size: (34),
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              activeWebView = false;
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.only(left: 24, bottom: 39),
-                            child: Image.asset("assets/images/LOGO.png"),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 33, left: 26),
-                          child: Container(
-                            height: 30,
-                            width: 180,
-                            decoration: BoxDecoration(
-                                color: Color(0xffAEAEAE),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(57))),
-                          ),
-                        ),
-                      ],
-                    ),
+                  header(),
+                  SizedBox(
+                    height: 5,
                   ),
-                  SizedBox(height: 15),
 
 //Slider
                   Expanded(
-                    child: Stack(
-                      children: [
-                        Column(children: [
-                          loading
-                              ? Container()
-                              : AnimatedContainer(
-                                  height: closeMidSlider ? 1 : 370,
-                                  width: closeMidSlider
-                                      ? 1
-                                      : MediaQuery.of(context).size.width,
-                                  duration: Duration(milliseconds: 300),
-                                  child: CarouselSlider.builder(
-                                    options: CarouselOptions(
-                                      height: 600,
-                                      viewportFraction: 0.85,
-                                      initialPage: 1,
-                                      enableInfiniteScroll: true,
-                                      reverse: false,
-                                      autoPlay: true,
-                                      autoPlayInterval:
-                                          Duration(milliseconds: 2500),
-                                      autoPlayAnimationDuration:
-                                          Duration(milliseconds: 800),
-                                      autoPlayCurve: Curves.fastOutSlowIn,
-                                      enlargeCenterPage: true,
-                                      scrollDirection: Axis.horizontal,
-                                    ),
-                                    itemCount: midSlider.docs.length,
-                                    itemBuilder: (BuildContext context,
-                                            int index, int itemIndex) =>
-                                        GestureDetector(
-                                      onTap: () {
-                                        passedUrl =
-                                            midSlider.docs[index]['url'];
-                                        print(passedUrl);
-                                        setState(() {
-                                          activeWebView = true;
-                                        });
-                                      },
-                                      child: Container(
-                                          width:
-                                              MediaQuery.of(context).size.width,
-                                          child: CachedNetworkImage(
-                                            imageUrl: midSlider.docs[index]
-                                                ["img"],
-                                            fit: BoxFit.cover,
-                                          )),
+                    child: GestureDetector(
+                      onHorizontalDragUpdate: (details) {
+                        if (details.delta.dx > 5) {
+                          setState(() {
+                            sidemenu = true;
+                          });
+                        }
+                        if (details.delta.dx < -5) {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => favoPage()));
+                        }
+                      },
+                      child: Stack(
+                        children: [
+                          Column(children: [
+                            loading
+                                ? Container()
+                                : AnimatedContainer(
+                                    height: closeMidSlider ? 1 : 370,
+                                    width: closeMidSlider
+                                        ? 1
+                                        : MediaQuery.of(context).size.width,
+                                    duration: Duration(milliseconds: 300),
+                                    child: CarouselSlider.builder(
+                                      options: CarouselOptions(
+                                        height: 600,
+                                        viewportFraction: 0.95,
+                                        initialPage: 0,
+                                        enableInfiniteScroll: true,
+                                        reverse: false,
+                                        autoPlay: true,
+                                        autoPlayInterval:
+                                            Duration(milliseconds: 2500),
+                                        autoPlayAnimationDuration:
+                                            Duration(milliseconds: 800),
+                                        autoPlayCurve: Curves.fastOutSlowIn,
+                                        enlargeCenterPage: true,
+                                        scrollDirection: Axis.horizontal,
+                                      ),
+                                      itemCount: midSlider.docs.length,
+                                      itemBuilder: (BuildContext context,
+                                              int index, int itemIndex) =>
+                                          GestureDetector(
+                                        onTap: () {
+                                          passedUrl =
+                                              midSlider.docs[index]['url'];
+                                          print(passedUrl);
+                                          setState(() {
+                                            activeWebView = true;
+                                          });
+                                        },
+                                        child: Container(
+                                            width: MediaQuery.of(context)
+                                                .size
+                                                .width,
+                                            child: CachedNetworkImage(
+                                              imageUrl: midSlider.docs[index]
+                                                  ["img"],
+                                              fit: BoxFit.contain,
+                                            )),
+                                      ),
                                     ),
                                   ),
-                                ),
 
 //list
-
-                          loading
-                              ? Container()
-                              : Expanded(
-                                  child: Container(
-                                      child: ListView.builder(
-                                          physics: BouncingScrollPhysics(),
-                                          controller: _controller,
-                                          itemCount: linkList.docs.length,
-                                          itemBuilder: (BuildContext context,
-                                              int index) {
-                                            return Column(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          left: 10, right: 10),
-                                                  child: GestureDetector(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        print(
-                                                            linkList.docs[index]
-                                                                ["url"]);
-                                                        passedUrl = linkList
-                                                            .docs[index]["url"];
-                                                        activeWebView = true;
-                                                      });
-                                                    },
-                                                    child: Container(
-                                                      padding:
-                                                          EdgeInsets.all(13),
-                                                      decoration: BoxDecoration(
-                                                          color:
-                                                              Color(0xffF1F1F1),
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius
-                                                                      .circular(
-                                                                          33))),
-                                                      child: Column(
-                                                        children: [
-                                                          SizedBox(
-                                                            height: 10,
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              SizedBox(
-                                                                width: 20,
-                                                              ),
-                                                              Text(
-                                                                linkList.docs[
-                                                                        index]
-                                                                    ["name"],
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        20),
-                                                              ),
-                                                              Spacer(),
-                                                              Icon(Icons
-                                                                  .favorite_border),
-                                                              SizedBox(
-                                                                width: 20,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          Container(
-                                                            decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius
-                                                                    .all(Radius
-                                                                        .circular(
-                                                                            33))),
-                                                            padding:
-                                                                EdgeInsets.all(
-                                                                    18),
-                                                            child:
-                                                                FlutterLinkPreview(
-                                                              url: linkList
-                                                                      .docs[
-                                                                  index]["url"],
-                                                            ),
-                                                          ),
-                                                          CarouselSlider
-                                                              .builder(
-                                                                  options:
-                                                                      CarouselOptions(
-                                                                    autoPlay:
-                                                                        true,
-                                                                    viewportFraction:
-                                                                        1,
-                                                                    autoPlayInterval:
-                                                                        Duration(
-                                                                            seconds:
-                                                                                2),
-                                                                    autoPlayAnimationDuration:
-                                                                        Duration(
-                                                                            milliseconds:
-                                                                                800),
-                                                                    autoPlayCurve:
-                                                                        Curves
-                                                                            .decelerate,
-                                                                    scrollDirection:
-                                                                        Axis.horizontal,
-                                                                  ),
-                                                                  itemCount: linkList
-                                                                      .docs[
-                                                                          index]
-                                                                          [
-                                                                          "img"]
-                                                                      .length,
-                                                                  itemBuilder: (BuildContext
-                                                                              context,
-                                                                          int
-                                                                              index1,
-                                                                          int
-                                                                              itemIndex) =>
-                                                                      CachedNetworkImage(
-                                                                          fit: BoxFit
-                                                                              .contain,
-                                                                          imageUrl:
-                                                                              linkList.docs[index]["img"][index1]))
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                )
-                                              ],
-                                            );
-                                          })),
-                                )
-                        ]),
-                      ],
+                            SizedBox(
+                              height: 10,
+                            ),
+                            webList()
+                          ]),
+                        ],
+                      ),
                     ),
                   )
                 ],
@@ -338,6 +195,107 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Widget webList() {
+    return loading
+        ? Container()
+        : Expanded(
+            child: Container(
+                child: ListView.builder(
+                    physics: BouncingScrollPhysics(),
+                    controller: _controller,
+                    itemCount: linkList.docs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10, right: 10),
+                            child: Container(
+                              padding: EdgeInsets.all(13),
+                              decoration: BoxDecoration(
+                                  color: Color(0xffF1F1F1),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(33))),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      Text(
+                                        linkList.docs[index]["name"],
+                                        style: TextStyle(fontSize: 20),
+                                      ),
+                                      Spacer(),
+                                      favoIcon(linkList.docs[index]['url'],
+                                          linkList.docs[index]['name']),
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                    ],
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        print(linkList.docs[index]["url"]);
+                                        passedUrl = linkList.docs[index]["url"];
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(33))),
+                                      padding: EdgeInsets.all(18),
+                                      child: FlutterLinkPreview(
+                                        url: linkList.docs[index]["url"],
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        print(linkList.docs[index]["url"]);
+                                        passedUrl = linkList.docs[index]["url"];
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: CarouselSlider.builder(
+                                        options: CarouselOptions(
+                                          autoPlay: true,
+                                          viewportFraction: 1,
+                                          autoPlayInterval:
+                                              Duration(seconds: 2),
+                                          autoPlayAnimationDuration:
+                                              Duration(milliseconds: 800),
+                                          autoPlayCurve: Curves.decelerate,
+                                          scrollDirection: Axis.horizontal,
+                                        ),
+                                        itemCount:
+                                            linkList.docs[index]["img"].length,
+                                        itemBuilder: (BuildContext context,
+                                                int index1, int itemIndex) =>
+                                            CachedNetworkImage(
+                                                fit: BoxFit.contain,
+                                                imageUrl: linkList.docs[index]
+                                                    ["img"][index1])),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          )
+                        ],
+                      );
+                    })),
+          );
   }
 
   Widget webView() {
@@ -389,12 +347,10 @@ class _HomePageState extends State<HomePage> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                setState(() {
-                                  activeWebView = false;
-                                });
+                                _webViewController.reload();
                               },
                               child: Container(
-                                padding: EdgeInsets.all(10),
+                                padding: EdgeInsets.all(20),
                                 child: Image.asset("assets/images/LOGO.png"),
                               ),
                             ),
@@ -500,5 +456,81 @@ class _HomePageState extends State<HomePage> {
             ),
           )
         : Container();
+  }
+
+  Widget favoIcon(favoUrl, favoNa) {
+    favoUpdate() async {
+      await MySharedPreferences.setListData('favo', favo);
+      await MySharedPreferences.setListData('favoName', favoName);
+      print(favo);
+      print(favoName);
+    }
+
+    if (favo.contains(favoUrl)) {
+      return GestureDetector(
+          onTap: () {
+            setState(() {
+              favo.remove(favoUrl);
+              favoName.remove(favoNa);
+              favoUpdate();
+            });
+          },
+          child: Icon(Icons.favorite, color: Colors.red));
+    } else {
+      return GestureDetector(
+          onTap: () {
+            setState(() {
+              favo.add(favoUrl);
+              favoName.add(favoNa);
+              favoUpdate();
+            });
+          },
+          child: Icon(Icons.favorite_border));
+    }
+  }
+
+  Widget header() {
+    return Container(
+      decoration: BoxDecoration(
+          color: Color(0xffcecece),
+          borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20))),
+      height: 110,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                sidemenu = true;
+              });
+            },
+            child: Container(
+              padding: EdgeInsets.only(left: 30, bottom: 33),
+              child: Icon(
+                Icons.list,
+                size: (34),
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.only(left: 24, bottom: 39),
+            child: Image.asset("assets/images/LOGO.png"),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: 33, left: 26),
+            child: Container(
+              height: 30,
+              width: 180,
+              decoration: BoxDecoration(
+                  color: Color(0xffAEAEAE),
+                  borderRadius: BorderRadius.all(Radius.circular(57))),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
