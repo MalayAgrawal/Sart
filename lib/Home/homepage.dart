@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -5,13 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_link_preview/flutter_link_preview.dart';
-import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sart/Home/database.dart';
 import 'package:sart/Home/favoritePage.dart';
 
-var midSlider, linkList;
+var midSlider, linkList, filterData;
 
 class HomePage extends StatefulWidget {
   @override
@@ -22,12 +22,25 @@ class _HomePageState extends State<HomePage> {
   bool closeMidSlider = false,
       loading = true,
       sidemenu = false,
+      activeFilter = false,
       activeWebView = false;
+  int findex = 0;
   double loadingbar = 0;
   String passedUrl = '';
   List<String> favo = [], favoName = [];
   final ScrollController _controller = ScrollController();
   InAppWebViewController _webViewController;
+
+  void getFilterData(a) async {
+    print("\n\n\n\n" + a);
+    filterData = await FirebaseFirestore.instance.collection(a).get();
+    setState(() {
+      closeMidSlider = true;
+      activeFilter = true;
+      sidemenu = false;
+    });
+  }
+
   void getData() async {
     await Firebase.initializeApp();
     midSlider = await FirebaseFirestore.instance.collection("MidSlider").get();
@@ -57,6 +70,16 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     getData();
+
+    Timer.periodic(Duration(seconds: 5), (Timer t) {
+      setState(() {
+        if (findex == 0)
+          findex = 1;
+        else
+          findex = 0;
+      });
+    });
+
     super.initState();
 
     _controller.addListener(() {
@@ -95,11 +118,22 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: GestureDetector(
                       onHorizontalDragUpdate: (details) {
-                        if (details.delta.dx > 5) {
-                          setState(() {
-                            sidemenu = true;
-                          });
+                        if (!activeFilter) {
+                          if (details.delta.dx > 5) {
+                            setState(() {
+                              sidemenu = true;
+                            });
+                          }
                         }
+                        if (activeFilter) {
+                          if (details.delta.dx > 5) {
+                            setState(() {
+                              activeFilter = false;
+                              closeMidSlider = false;
+                            });
+                          }
+                        }
+
                         if (details.delta.dx < -5) {
                           Navigator.push(
                               context,
@@ -163,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                             SizedBox(
                               height: 10,
                             ),
-                            webList()
+                            activeFilter ? filterPage() : webList()
                           ]),
                         ],
                       ),
@@ -176,6 +210,13 @@ class _HomePageState extends State<HomePage> {
 // Side Menu
             sidemenu
                 ? GestureDetector(
+                    onHorizontalDragUpdate: (details) {
+                      if (details.delta.dx < -5) {
+                        setState(() {
+                          sidemenu = false;
+                        });
+                      }
+                    },
                     onTap: () {
                       setState(() {
                         sidemenu = false;
@@ -194,6 +235,137 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget filterPage() {
+    return Expanded(
+      child: Container(
+          child: ListView.builder(
+              physics: BouncingScrollPhysics(),
+              controller: _controller,
+              itemCount: filterData.docs.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            color: Color(0xffF1F1F1),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(33))),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              filterData.docs[index]["name"],
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            index.isEven
+                                ? Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            print(
+                                                filterData.docs[index]["url"]);
+                                            passedUrl =
+                                                filterData.docs[index]["url"];
+                                            activeWebView = true;
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(33))),
+                                          padding: EdgeInsets.all(10),
+                                          width: (MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2) -
+                                              20,
+                                          child: FlutterLinkPreview(
+                                            url: filterData.docs[index]["url"],
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                          width: (MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2) -
+                                              20,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Image.network(filterData
+                                                .docs[index]['img'][findex]),
+                                          ))
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                          width: (MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2) -
+                                              20,
+                                          height: 200,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: Image.network(filterData
+                                                .docs[index]['img'][findex]),
+                                          )),
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            print(
+                                                filterData.docs[index]["url"]);
+                                            passedUrl =
+                                                filterData.docs[index]["url"];
+                                            activeWebView = true;
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(33))),
+                                          padding: EdgeInsets.all(10),
+                                          width: (MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2) -
+                                              20,
+                                          child: FlutterLinkPreview(
+                                            url: filterData.docs[index]["url"],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    )
+                  ],
+                );
+              })),
     );
   }
 
@@ -385,7 +557,6 @@ class _HomePageState extends State<HomePage> {
         ? BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: AnimatedContainer(
-              curve: Curves.bounceIn,
               duration: Duration(milliseconds: 800),
               color: Color(0xfff1f1f1).withOpacity(0.82),
               width: MediaQuery.of(context).size.width - 120,
@@ -435,12 +606,17 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-                                  Container(
-                                    width: 150,
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      "T - S H I R T S",
-                                      style: TextStyle(fontSize: 17),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "T - S H I R T S",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
                                     ),
                                   ),
                                 ],

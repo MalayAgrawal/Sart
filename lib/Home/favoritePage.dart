@@ -66,40 +66,51 @@ class _favoPageState extends State<favoPage> {
                     padding: EdgeInsets.only(top: 30),
                     child: Image.asset("assets/images/LOGO.png")),
               ),
+              SizedBox(
+                height: 15,
+              ),
               Expanded(
                   child: loading
                       ? Container()
-                      : ListView.builder(
-                          physics: BouncingScrollPhysics(),
-                          itemCount: favo.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                  right: 10, left: 10, bottom: 15),
-                              child: GestureDetector(
-                                onTap: () {
-                                  passedUrl = favo[index];
-                                  print(passedUrl);
-                                  setState(() {
-                                    activeWebView = true;
-                                  });
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: Color(0xffF1F1F1),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(33))),
-                                  padding: EdgeInsets.all(18),
-                                  child: Column(
-                                    children: [
-                                      Text(favoName[index]),
-                                      FlutterLinkPreview(url: favo[index]),
-                                    ],
+                      : GestureDetector(
+                          onHorizontalDragUpdate: (details) => {
+                            if (details.delta.dx > 5)
+                              {
+                                Navigator.pop(context),
+                              }
+                          },
+                          child: ListView.builder(
+                              physics: BouncingScrollPhysics(),
+                              itemCount: favo.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                      right: 10, left: 10, bottom: 15),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      passedUrl = favo[index];
+                                      print(passedUrl);
+                                      setState(() {
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: Color(0xffF1F1F1),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(33))),
+                                      padding: EdgeInsets.all(18),
+                                      child: Column(
+                                        children: [
+                                          Text(favoName[index]),
+                                          FlutterLinkPreview(url: favo[index]),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          })),
+                                );
+                              }),
+                        )),
             ]),
           ),
           webView()
