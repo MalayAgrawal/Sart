@@ -23,13 +23,15 @@ class _HomePageState extends State<HomePage> {
       loading = true,
       sidemenu = false,
       activeFilter = false,
-      activeWebView = false;
+      activeWebView = false,
+      activeSearchBar = false;
   int findex = 0;
   double loadingbar = 0;
   String passedUrl = '';
   List<String> favo = [], favoName = [];
   final ScrollController _controller = ScrollController();
   InAppWebViewController _webViewController;
+  TextEditingController textController = new TextEditingController();
 
   void getFilterData(a) async {
     print("\n\n\n\n" + a);
@@ -39,6 +41,10 @@ class _HomePageState extends State<HomePage> {
       activeFilter = true;
       sidemenu = false;
     });
+  }
+
+  onSearchTextChanged(String text) {
+    setState(() {});
   }
 
   void getData() async {
@@ -63,6 +69,11 @@ class _HomePageState extends State<HomePage> {
     if (activeWebView) {
       setState(() {
         activeWebView = false;
+      });
+    }
+    if (activeSearchBar) {
+      setState(() {
+        activeSearchBar = false;
       });
     }
   }
@@ -118,13 +129,14 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: GestureDetector(
                       onHorizontalDragUpdate: (details) {
-                        if (!activeFilter) {
+                        if (!activeFilter && !activeSearchBar) {
                           if (details.delta.dx > 5) {
                             setState(() {
                               sidemenu = true;
                             });
                           }
                         }
+
                         if (activeFilter) {
                           if (details.delta.dx > 5) {
                             setState(() {
@@ -197,7 +209,11 @@ class _HomePageState extends State<HomePage> {
                             SizedBox(
                               height: 10,
                             ),
-                            activeFilter ? filterPage() : webList()
+                            activeSearchBar
+                                ? searchList()
+                                : activeFilter
+                                    ? filterPage()
+                                    : webList()
                           ]),
                         ],
                       ),
@@ -235,6 +251,71 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget searchList() {
+    return Expanded(
+      child: Container(
+          child: ListView.builder(
+              physics: BouncingScrollPhysics(),
+              controller: _controller,
+              itemCount: linkList.docs.length,
+              itemBuilder: (BuildContext context, int index) {
+                return linkList.docs[index]['name']
+                        .toLowerCase()
+                        .contains(textController.text.toLowerCase())
+                    ? Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 10, right: 10),
+                            child: Container(
+                              padding: EdgeInsets.all(13),
+                              decoration: BoxDecoration(
+                                  color: Color(0xffF1F1F1),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(33))),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(
+                                    linkList.docs[index]['name'],
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        print(linkList.docs[index]['url']);
+                                        passedUrl = linkList.docs[index]['url'];
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(33))),
+                                      padding: EdgeInsets.all(18),
+                                      child: FlutterLinkPreview(
+                                        showMultimedia: false,
+                                        useMultithread: true,
+                                        cache: Duration(microseconds: 10),
+                                        url: linkList.docs[index]['url'],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          )
+                        ],
+                      )
+                    : Container();
+              })),
     );
   }
 
@@ -425,6 +506,7 @@ class _HomePageState extends State<HomePage> {
                                               Radius.circular(33))),
                                       padding: EdgeInsets.all(18),
                                       child: FlutterLinkPreview(
+                                        cache: const Duration(days: 3),
                                         url: linkList.docs[index]["url"],
                                       ),
                                     ),
@@ -566,12 +648,17 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 80,
                   ),
-                  SingleChildScrollView(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width - 120,
-                      height: MediaQuery.of(context).size.height - 250,
+                  Container(
+                    width: MediaQuery.of(context).size.width - 120,
+                    height: MediaQuery.of(context).size.height - 250,
+                    child: SingleChildScrollView(
                       child: Column(
+//Filter Options
                         children: [
+//Mens Section
+                          SizedBox(
+                            height: 20,
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(right: 20, left: 20),
                             child: Container(
@@ -584,12 +671,9 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(30))),
                               child: ExpansionTile(
-                                title: Container(
-                                  decoration: BoxDecoration(),
-                                  child: Text(
-                                    "M E N S",
-                                    style: TextStyle(fontSize: 18),
-                                  ),
+                                title: Text(
+                                  "M E N S",
+                                  style: TextStyle(fontSize: 18),
                                 ),
                                 children: [
                                   SizedBox(
@@ -599,7 +683,7 @@ class _HomePageState extends State<HomePage> {
                                     width: 150,
                                     padding: EdgeInsets.all(5),
                                     child: Text(
-                                      "S H I R T S",
+                                      "Shirts",
                                       style: TextStyle(fontSize: 17),
                                     ),
                                   ),
@@ -614,10 +698,189 @@ class _HomePageState extends State<HomePage> {
                                       width: 150,
                                       padding: EdgeInsets.all(5),
                                       child: Text(
-                                        "T - S H I R T S",
+                                        "T-Shirts",
                                         style: TextStyle(fontSize: 17),
                                       ),
                                     ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Hoodies & Jackets",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Bottomwear",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+//Womens Section
+
+                          Padding(
+                            padding: const EdgeInsets.only(right: 20, left: 20),
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                right: 10,
+                                left: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30))),
+                              child: ExpansionTile(
+                                title: Text(
+                                  "W O M E N",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                                children: [
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Container(
+                                    width: 150,
+                                    padding: EdgeInsets.all(5),
+                                    child: Text(
+                                      "CropTops & \nT-Shirts",
+                                      style: TextStyle(fontSize: 17),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Hoodies & Jackets",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Bottomwear",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+
+//Acsseries
+                          Padding(
+                            padding: const EdgeInsets.only(right: 20, left: 20),
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                right: 10,
+                                left: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30))),
+                              child: ExpansionTile(
+                                title: Text(
+                                  "ACCESSORIES",
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                                children: [
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Container(
+                                    width: 150,
+                                    padding: EdgeInsets.all(5),
+                                    child: Text(
+                                      "Toe Wear",
+                                      style: TextStyle(fontSize: 17),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Gift's",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('T-Shirt');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "We Don't \nKnow",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 10,
                                   ),
                                 ],
                               ),
@@ -672,41 +935,75 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(20),
               bottomRight: Radius.circular(20))),
-      height: 110,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                sidemenu = true;
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.only(left: 30, bottom: 33),
-              child: Icon(
-                Icons.list,
-                size: (34),
-                color: Colors.grey[600],
+      height: activeSearchBar ? 130 : 110,
+      width: MediaQuery.of(context).size.width,
+      child: activeSearchBar
+          ? Padding(
+              padding: const EdgeInsets.only(
+                  top: 70, bottom: 20, left: 70, right: 70),
+              child: Container(
+                padding: EdgeInsets.only(right: 25, left: 25, bottom: 2),
+                decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(20),
+                    )),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search...',
+                    border: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                  ),
+                  controller: textController,
+                  onChanged: onSearchTextChanged,
+                ),
               ),
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      sidemenu = true;
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.only(left: 30, bottom: 33),
+                    child: Icon(
+                      Icons.list,
+                      size: (34),
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(left: 24, bottom: 39),
+                  child: Image.asset("assets/images/LOGO.png"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 33, left: 26),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        activeSearchBar = true;
+                        closeMidSlider = true;
+                      });
+                    },
+                    child: Container(
+                      height: 30,
+                      width: 180,
+                      decoration: BoxDecoration(
+                          color: Color(0xffAEAEAE),
+                          borderRadius: BorderRadius.all(Radius.circular(57))),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          Container(
-            padding: EdgeInsets.only(left: 24, bottom: 39),
-            child: Image.asset("assets/images/LOGO.png"),
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: 33, left: 26),
-            child: Container(
-              height: 30,
-              width: 180,
-              decoration: BoxDecoration(
-                  color: Color(0xffAEAEAE),
-                  borderRadius: BorderRadius.all(Radius.circular(57))),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
