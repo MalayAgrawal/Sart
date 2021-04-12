@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sart/Home/database.dart';
 import 'package:sart/Home/favoritePage.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 var midSlider, linkList, filterData;
 
@@ -25,17 +26,26 @@ class _HomePageState extends State<HomePage> {
       activeFilter = false,
       activeWebView = false,
       activeSearchBar = false;
-  int findex = 0;
+  Map<String, dynamic> resultsMap;
+  int findex = 2;
   double loadingbar = 0;
   String passedUrl = '';
   List<String> favo = [], favoName = [];
+  List filterList;
   final ScrollController _controller = ScrollController();
   InAppWebViewController _webViewController;
   TextEditingController textController = new TextEditingController();
 
   void getFilterData(a) async {
     print("\n\n\n\n" + a);
-    filterData = await FirebaseFirestore.instance.collection(a).get();
+    filterData =
+        await FirebaseFirestore.instance.collection("Filter").doc(a).get();
+    resultsMap = filterData.data();
+    resultsMap.remove('itemID');
+    filterList = resultsMap.entries.map((e) => e.value).toList();
+    print(filterList.length);
+    print(filterList[1]);
+    print("Hola");
     setState(() {
       closeMidSlider = true;
       activeFilter = true;
@@ -84,10 +94,10 @@ class _HomePageState extends State<HomePage> {
 
     Timer.periodic(Duration(seconds: 5), (Timer t) {
       setState(() {
-        if (findex == 0)
-          findex = 1;
+        if (findex == 2)
+          findex = 3;
         else
-          findex = 0;
+          findex = 2;
       });
     });
 
@@ -325,7 +335,7 @@ class _HomePageState extends State<HomePage> {
           child: ListView.builder(
               physics: BouncingScrollPhysics(),
               controller: _controller,
-              itemCount: filterData.docs.length,
+              itemCount: filterList.length,
               itemBuilder: (BuildContext context, int index) {
                 return Column(
                   children: [
@@ -343,7 +353,7 @@ class _HomePageState extends State<HomePage> {
                               height: 10,
                             ),
                             Text(
-                              filterData.docs[index]["name"],
+                              filterList[index][0],
                               style: TextStyle(fontSize: 20),
                             ),
                             SizedBox(
@@ -357,10 +367,8 @@ class _HomePageState extends State<HomePage> {
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
-                                            print(
-                                                filterData.docs[index]["url"]);
-                                            passedUrl =
-                                                filterData.docs[index]["url"];
+                                            print(filterList[index][1]);
+                                            passedUrl = filterList[index][1];
                                             activeWebView = true;
                                           });
                                         },
@@ -375,48 +383,97 @@ class _HomePageState extends State<HomePage> {
                                                   2) -
                                               20,
                                           child: FlutterLinkPreview(
-                                            url: filterData.docs[index]["url"],
+                                            url: filterList[index][1],
                                           ),
                                         ),
                                       ),
-                                      Container(
-                                          width: (MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  2) -
-                                              20,
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: Image.network(filterData
-                                                .docs[index]['img'][findex]),
-                                          ))
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            print(filterList[index][1]);
+                                            passedUrl = filterList[index][1];
+                                            activeWebView = true;
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 5.0, bottom: 3),
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(15)),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.5),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 7,
+                                                    offset: Offset(0, 3),
+                                                  ),
+                                                ],
+                                              ),
+                                              width: (MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      2) -
+                                                  20,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                child: Image.network(
+                                                    filterList[index][findex]),
+                                              )),
+                                        ),
+                                      )
                                     ],
                                   )
                                 : Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Container(
-                                          width: (MediaQuery.of(context)
-                                                      .size
-                                                      .width /
-                                                  2) -
-                                              20,
-                                          height: 200,
-                                          child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: Image.network(filterData
-                                                .docs[index]['img'][findex]),
-                                          )),
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
-                                            print(
-                                                filterData.docs[index]["url"]);
-                                            passedUrl =
-                                                filterData.docs[index]["url"];
+                                            print(filterList[index][1]);
+                                            passedUrl = filterList[index][1];
+                                            activeWebView = true;
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 5.0, bottom: 3),
+                                          child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(15)),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.5),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 7,
+                                                    offset: Offset(0, 3),
+                                                  ),
+                                                ],
+                                              ),
+                                              width: (MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      2) -
+                                                  20,
+                                              child: ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                child: Image.network(
+                                                    filterList[index][findex]),
+                                              )),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            print(filterList[index][1]);
+                                            passedUrl = filterList[index][1];
                                             activeWebView = true;
                                           });
                                         },
@@ -431,7 +488,7 @@ class _HomePageState extends State<HomePage> {
                                                   2) -
                                               20,
                                           child: FlutterLinkPreview(
-                                            url: filterData.docs[index]["url"],
+                                            url: filterList[index][1],
                                           ),
                                         ),
                                       ),
@@ -492,6 +549,38 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ],
                                   ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        print(linkList.docs[index]["url"]);
+                                        passedUrl = linkList.docs[index]["url"];
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: CarouselSlider.builder(
+                                        options: CarouselOptions(
+                                          enlargeCenterPage: true,
+                                          autoPlay: true,
+                                          viewportFraction: 0.9,
+                                          autoPlayInterval:
+                                              Duration(seconds: 2),
+                                          autoPlayAnimationDuration:
+                                              Duration(milliseconds: 800),
+                                          autoPlayCurve: Curves.decelerate,
+                                          scrollDirection: Axis.horizontal,
+                                        ),
+                                        itemCount:
+                                            linkList.docs[index]["img"].length,
+                                        itemBuilder: (BuildContext context,
+                                                int index1, int itemIndex) =>
+                                            CachedNetworkImage(
+                                                fit: BoxFit.contain,
+                                                imageUrl: linkList.docs[index]
+                                                    ["img"][index1])),
+                                  ),
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
@@ -511,34 +600,6 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        print(linkList.docs[index]["url"]);
-                                        passedUrl = linkList.docs[index]["url"];
-                                        activeWebView = true;
-                                      });
-                                    },
-                                    child: CarouselSlider.builder(
-                                        options: CarouselOptions(
-                                          autoPlay: true,
-                                          viewportFraction: 1,
-                                          autoPlayInterval:
-                                              Duration(seconds: 2),
-                                          autoPlayAnimationDuration:
-                                              Duration(milliseconds: 800),
-                                          autoPlayCurve: Curves.decelerate,
-                                          scrollDirection: Axis.horizontal,
-                                        ),
-                                        itemCount:
-                                            linkList.docs[index]["img"].length,
-                                        itemBuilder: (BuildContext context,
-                                                int index1, int itemIndex) =>
-                                            CachedNetworkImage(
-                                                fit: BoxFit.contain,
-                                                imageUrl: linkList.docs[index]
-                                                    ["img"][index1])),
-                                  )
                                 ],
                               ),
                             ),
@@ -605,7 +666,10 @@ class _HomePageState extends State<HomePage> {
                               },
                               child: Container(
                                 padding: EdgeInsets.all(20),
-                                child: Image.asset("assets/images/LOGO.png"),
+                                child: SvgPicture.asset(
+                                  "assets/images/Sart 2.svg",
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ),
                             GestureDetector(
@@ -679,12 +743,17 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-                                  Container(
-                                    width: 150,
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      "Shirts",
-                                      style: TextStyle(fontSize: 17),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('M-Shirts');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Shirts",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
@@ -692,7 +761,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('M-T-Shirt');
                                     },
                                     child: Container(
                                       width: 150,
@@ -708,7 +777,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('M-Hoodies-Jackets');
                                     },
                                     child: Container(
                                       width: 150,
@@ -724,7 +793,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('M-Bottomwear');
                                     },
                                     child: Container(
                                       width: 150,
@@ -767,12 +836,17 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-                                  Container(
-                                    width: 150,
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      "CropTops & \nT-Shirts",
-                                      style: TextStyle(fontSize: 17),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('W-CropTops-T-Shirts');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "CropTops & \nT-Shirts",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
@@ -780,7 +854,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('W-Hoodies-Jackets');
                                     },
                                     child: Container(
                                       width: 150,
@@ -796,7 +870,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('W-BottomWear');
                                     },
                                     child: Container(
                                       width: 150,
@@ -839,12 +913,17 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(
                                     height: 10,
                                   ),
-                                  Container(
-                                    width: 150,
-                                    padding: EdgeInsets.all(5),
-                                    child: Text(
-                                      "Toe Wear",
-                                      style: TextStyle(fontSize: 17),
+                                  GestureDetector(
+                                    onTap: () {
+                                      getFilterData('Toe Wear');
+                                    },
+                                    child: Container(
+                                      width: 150,
+                                      padding: EdgeInsets.all(5),
+                                      child: Text(
+                                        "Toe Wear",
+                                        style: TextStyle(fontSize: 17),
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
@@ -852,7 +931,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('Gifts');
                                     },
                                     child: Container(
                                       width: 150,
@@ -868,13 +947,13 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('T-Shirt');
+                                      getFilterData('Random Stuff');
                                     },
                                     child: Container(
                                       width: 150,
                                       padding: EdgeInsets.all(5),
                                       child: Text(
-                                        "We Don't \nKnow",
+                                        "Random Stuff",
                                         style: TextStyle(fontSize: 17),
                                       ),
                                     ),
@@ -982,7 +1061,10 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Container(
                   padding: EdgeInsets.only(left: 24, bottom: 39),
-                  child: Image.asset("assets/images/LOGO.png"),
+                  child: SvgPicture.asset(
+                    "assets/images/Sart 2.svg",
+                    color: Colors.grey[700],
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(bottom: 33, left: 26),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_link_preview/flutter_link_preview.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:sart/Home/database.dart';
 
 class favoPage extends StatefulWidget {
@@ -62,9 +63,15 @@ class _favoPageState extends State<favoPage> {
                         bottomLeft: Radius.circular(20),
                         bottomRight: Radius.circular(20))),
                 height: 110,
+                width: MediaQuery.of(context).size.width,
                 child: Padding(
-                    padding: EdgeInsets.only(top: 30),
-                    child: Image.asset("assets/images/LOGO.png")),
+                  padding: EdgeInsets.only(
+                      top: 69, right: 110, left: 110, bottom: 20),
+                  child: SvgPicture.asset(
+                    "assets/images/Sart 2.svg",
+                    color: Colors.white,
+                  ),
+                ),
               ),
               SizedBox(
                 height: 15,
@@ -172,7 +179,10 @@ class _favoPageState extends State<favoPage> {
                               },
                               child: Container(
                                 padding: EdgeInsets.all(20),
-                                child: Image.asset("assets/images/LOGO.png"),
+                                child: SvgPicture.asset(
+                                  "assets/images/Sart 2.svg",
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ),
                             GestureDetector(
