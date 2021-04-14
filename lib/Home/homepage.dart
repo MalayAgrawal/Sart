@@ -37,6 +37,12 @@ class _HomePageState extends State<HomePage> {
   TextEditingController textController = new TextEditingController();
 
   void getFilterData(a) async {
+    setState(() {
+      closeMidSlider = true;
+      sidemenu = false;
+      loading = true;
+      filterList = [];
+    });
     print("\n\n\n\n" + a);
     filterData =
         await FirebaseFirestore.instance.collection("Filter").doc(a).get();
@@ -47,9 +53,8 @@ class _HomePageState extends State<HomePage> {
     print(filterList[1]);
     print("Hola");
     setState(() {
-      closeMidSlider = true;
+      loading = false;
       activeFilter = true;
-      sidemenu = false;
     });
   }
 
@@ -84,6 +89,11 @@ class _HomePageState extends State<HomePage> {
     if (activeSearchBar) {
       setState(() {
         activeSearchBar = false;
+      });
+    }
+    if (activeFilter) {
+      setState(() {
+        activeFilter = false;
       });
     }
   }
@@ -745,13 +755,13 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('M-Shirts');
+                                      getFilterData('M-T-Shirt');
                                     },
                                     child: Container(
                                       width: 150,
                                       padding: EdgeInsets.all(5),
                                       child: Text(
-                                        "Shirts",
+                                        "T-Shirts",
                                         style: TextStyle(fontSize: 17),
                                       ),
                                     ),
@@ -761,13 +771,13 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      getFilterData('M-T-Shirt');
+                                      getFilterData('M-Shirts');
                                     },
                                     child: Container(
                                       width: 150,
                                       padding: EdgeInsets.all(5),
                                       child: Text(
-                                        "T-Shirts",
+                                        "Shirts",
                                         style: TextStyle(fontSize: 17),
                                       ),
                                     ),
