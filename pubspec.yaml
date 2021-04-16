@@ -34,9 +34,9 @@ dependencies:
   shared_preferences: ^2.0.5
   flutter_inappwebview: ^5.1.0+4
   flutter_svg:
-
+  flutter_launcher_icons:
   flutter_native_splash: ^1.1.7+1
-    
+  share: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +47,11 @@ flutter_native_splash:
   image: assets/images/sps.png
   android: true
   android_gravity: fill
+#flutter pub run flutter_launcher_icons:main
+flutter_icons:
+  android: true
+  image_path: "assets/images/icon3.png"
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

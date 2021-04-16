@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
-
+import 'package:share/share.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -74,10 +74,11 @@ class _HomePageState extends State<HomePage> {
       favo = await MySharedPreferences.getListData("favo");
       favoName = await MySharedPreferences.getListData("favoName");
     }
-
-    setState(() {
-      loading = false;
-    });
+    if (linkList != null && midSlider != null) {
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   Future<bool> backButtonControl() {
@@ -85,13 +86,11 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         activeWebView = false;
       });
-    }
-    if (activeSearchBar) {
+    } else if (activeSearchBar) {
       setState(() {
         activeSearchBar = false;
       });
-    }
-    if (activeFilter) {
+    } else if (activeFilter) {
       setState(() {
         activeFilter = false;
       });
@@ -146,99 +145,99 @@ class _HomePageState extends State<HomePage> {
                   ),
 
 //Slider
-                  Expanded(
-                    child: GestureDetector(
-                      onHorizontalDragUpdate: (details) {
-                        if (!activeFilter && !activeSearchBar) {
-                          if (details.delta.dx > 5) {
-                            setState(() {
-                              sidemenu = true;
-                            });
-                          }
-                        }
+                  loading
+                      ? Expanded(
+                          child: Center(
+                              child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.grey[400]))))
+                      : Expanded(
+                          child: GestureDetector(
+                            onHorizontalDragUpdate: (details) {
+                              if (!activeFilter && !activeSearchBar) {
+                                if (details.delta.dx > 5) {
+                                  setState(() {
+                                    sidemenu = true;
+                                  });
+                                }
+                              }
 
-                        if (activeFilter) {
-                          if (details.delta.dx > 5) {
-                            setState(() {
-                              activeFilter = false;
-                              closeMidSlider = false;
-                            });
-                          }
-                        }
+                              if (activeFilter) {
+                                if (details.delta.dx > 5) {
+                                  setState(() {
+                                    activeFilter = false;
+                                    closeMidSlider = false;
+                                  });
+                                }
+                              }
 
-                        if (details.delta.dx < -5) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => favoPage()));
-                        }
-                      },
-                      child: Stack(
-                        children: [
-                          Column(children: [
-                            loading
-                                ? Container()
-                                : AnimatedContainer(
-                                    height: closeMidSlider ? 1 : 370,
-                                    width: closeMidSlider
-                                        ? 1
-                                        : MediaQuery.of(context).size.width,
-                                    duration: Duration(milliseconds: 300),
-                                    child: CarouselSlider.builder(
-                                      options: CarouselOptions(
-                                        height: 600,
-                                        viewportFraction: 0.95,
-                                        initialPage: 0,
-                                        enableInfiniteScroll: true,
-                                        reverse: false,
-                                        autoPlay: true,
-                                        autoPlayInterval:
-                                            Duration(milliseconds: 2500),
-                                        autoPlayAnimationDuration:
-                                            Duration(milliseconds: 800),
-                                        autoPlayCurve: Curves.fastOutSlowIn,
-                                        enlargeCenterPage: true,
-                                        scrollDirection: Axis.horizontal,
-                                      ),
-                                      itemCount: midSlider.docs.length,
-                                      itemBuilder: (BuildContext context,
-                                              int index, int itemIndex) =>
-                                          GestureDetector(
-                                        onTap: () {
-                                          passedUrl =
-                                              midSlider.docs[index]['url'];
-                                          print(passedUrl);
-                                          setState(() {
-                                            activeWebView = true;
-                                          });
-                                        },
-                                        child: Container(
-                                            width: MediaQuery.of(context)
-                                                .size
-                                                .width,
-                                            child: CachedNetworkImage(
-                                              imageUrl: midSlider.docs[index]
-                                                  ["img"],
-                                              fit: BoxFit.contain,
-                                            )),
-                                      ),
-                                    ),
+                              if (details.delta.dx < -5) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => favoPage()));
+                              }
+                            },
+                            child: Column(children: [
+                              AnimatedContainer(
+                                height: closeMidSlider ? 1 : 370,
+                                width: closeMidSlider
+                                    ? 1
+                                    : MediaQuery.of(context).size.width,
+                                duration: Duration(milliseconds: 300),
+                                child: CarouselSlider.builder(
+                                  options: CarouselOptions(
+                                    height: 600,
+                                    viewportFraction: 0.95,
+                                    initialPage: 0,
+                                    enableInfiniteScroll: true,
+                                    reverse: false,
+                                    autoPlay: true,
+                                    autoPlayInterval:
+                                        Duration(milliseconds: 2500),
+                                    autoPlayAnimationDuration:
+                                        Duration(milliseconds: 800),
+                                    autoPlayCurve: Curves.fastOutSlowIn,
+                                    enlargeCenterPage: true,
+                                    scrollDirection: Axis.horizontal,
                                   ),
+                                  itemCount: midSlider.docs.length,
+                                  itemBuilder: (BuildContext context, int index,
+                                          int itemIndex) =>
+                                      GestureDetector(
+                                    onTap: () {
+                                      passedUrl = midSlider.docs[index]['url'];
+                                      print(passedUrl);
+                                      setState(() {
+                                        activeWebView = true;
+                                      });
+                                    },
+                                    child: Container(
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        child: CachedNetworkImage(
+                                          imageUrl: midSlider.docs[index]
+                                              ["img"],
+                                          fit: BoxFit.contain,
+                                        )),
+                                  ),
+                                ),
+                              ),
 
 //list
-                            SizedBox(
-                              height: 10,
-                            ),
-                            activeSearchBar
-                                ? searchList()
-                                : activeFilter
-                                    ? filterPage()
-                                    : webList()
-                          ]),
-                        ],
-                      ),
-                    ),
-                  )
+                              closeMidSlider
+                                  ? SizedBox()
+                                  : SizedBox(
+                                      height: 10,
+                                    ),
+                              activeSearchBar
+                                  ? searchList()
+                                  : activeFilter
+                                      ? filterPage()
+                                      : webList()
+                            ]),
+                          ),
+                        )
                 ],
               ),
             ),
@@ -714,7 +713,7 @@ class _HomePageState extends State<HomePage> {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: AnimatedContainer(
               duration: Duration(milliseconds: 800),
-              color: Color(0xfff1f1f1).withOpacity(0.82),
+              color: Color(0xffeaeced).withOpacity(0.82),
               width: MediaQuery.of(context).size.width - 120,
               height: MediaQuery.of(context).size.height,
               child: Column(
@@ -1018,84 +1017,134 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget header() {
-    return Container(
-      decoration: BoxDecoration(
-          color: Color(0xffcecece),
-          borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20))),
-      height: activeSearchBar ? 130 : 110,
-      width: MediaQuery.of(context).size.width,
-      child: activeSearchBar
-          ? Padding(
-              padding: const EdgeInsets.only(
-                  top: 70, bottom: 20, left: 70, right: 70),
-              child: Container(
-                padding: EdgeInsets.only(right: 25, left: 25, bottom: 2),
-                decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(20),
-                    )),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search...',
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+              color: Color(0xffeaeced),
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(25),
+                  bottomRight: Radius.circular(25))),
+          height: activeSearchBar ? 130 : 110,
+          width: MediaQuery.of(context).size.width,
+          child: activeSearchBar
+              ? Padding(
+                  padding: const EdgeInsets.only(
+                      top: 70, bottom: 20, left: 70, right: 70),
+                  child: Container(
+                    padding: EdgeInsets.only(right: 25, left: 25, bottom: 2),
+                    decoration: BoxDecoration(
+                        color: Colors.white70,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(20),
+                        )),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search...',
+                        border: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                      ),
+                      controller: textController,
+                      onChanged: onSearchTextChanged,
+                    ),
                   ),
-                  controller: textController,
-                  onChanged: onSearchTextChanged,
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          sidemenu = true;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(left: 30, bottom: 33),
+                        child: Icon(
+                          Icons.list,
+                          size: (34),
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.only(left: 24, bottom: 39),
+                      child: SvgPicture.asset(
+                        "assets/images/Sart 2.svg",
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 33, left: 26),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            activeSearchBar = true;
+                            closeMidSlider = true;
+                          });
+                        },
+                        child: Container(
+                          height: 30,
+                          width: 180,
+                          decoration: BoxDecoration(
+                              color: Colors.white70,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(57))),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Icon(
+                                Icons.search,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text("Search...",
+                                  style: TextStyle(color: Colors.grey)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              alignment: Alignment.center,
+              height: 30,
+              width: 60,
+              child: Text(
+                "All",
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => favoPage()));
+              },
+              child: Container(
+                alignment: Alignment.center,
+                height: 30,
+                width: 60,
+                child: Text(
+                  "Favo",
+                  style: TextStyle(color: Colors.grey[400]),
                 ),
               ),
             )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      sidemenu = true;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.only(left: 30, bottom: 33),
-                    child: Icon(
-                      Icons.list,
-                      size: (34),
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(left: 24, bottom: 39),
-                  child: SvgPicture.asset(
-                    "assets/images/Sart 2.svg",
-                    color: Colors.grey[700],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 33, left: 26),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        activeSearchBar = true;
-                        closeMidSlider = true;
-                      });
-                    },
-                    child: Container(
-                      height: 30,
-                      width: 180,
-                      decoration: BoxDecoration(
-                          color: Color(0xffAEAEAE),
-                          borderRadius: BorderRadius.all(Radius.circular(57))),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          ],
+        )
+      ],
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'Home/homepage.dart';
+import 'package:sart/guidepage.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +14,9 @@ void main() {
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'SART',
-      home: HomePage(),
-    );
+        debugShowCheckedModeBanner: false, title: 'SART', home: GuidePage());
   }
 }

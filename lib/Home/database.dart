@@ -10,4 +10,14 @@ class MySharedPreferences {
     SharedPreferences myPrefs = await SharedPreferences.getInstance();
     return myPrefs.getStringList(key);
   }
+
+  static setForFirstTimeLogin(String key, bool value) async {
+    SharedPreferences firCheck = await SharedPreferences.getInstance();
+    firCheck.setBool(key, value);
+  }
+
+  static Future<bool> getForFirstTimeLogin(String key) async {
+    SharedPreferences firCheck = await SharedPreferences.getInstance();
+    return firCheck.getBool(key);
+  }
 }

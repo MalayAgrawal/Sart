@@ -58,23 +58,48 @@ class _favoPageState extends State<favoPage> {
             child: Column(children: [
               Container(
                 decoration: BoxDecoration(
-                    color: Color(0xffcecece),
+                    color: Color(0xffeaeced),
                     borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20))),
+                        bottomLeft: Radius.circular(25),
+                        bottomRight: Radius.circular(25))),
                 height: 110,
                 width: MediaQuery.of(context).size.width,
                 child: Padding(
                   padding: EdgeInsets.only(
-                      top: 69, right: 110, left: 110, bottom: 20),
+                      top: 72, right: 110, left: 110, bottom: 20),
                   child: SvgPicture.asset(
                     "assets/images/Sart 2.svg",
-                    color: Colors.white,
+                    color: Colors.grey[600],
                   ),
                 ),
               ),
-              SizedBox(
-                height: 15,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      height: 30,
+                      width: 60,
+                      child: Text(
+                        "All",
+                        style: TextStyle(color: Colors.grey[400]),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    height: 30,
+                    width: 60,
+                    child: Text(
+                      "Favo",
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  )
+                ],
               ),
               Expanded(
                   child: loading
