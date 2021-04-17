@@ -12,7 +12,7 @@ import 'package:sart/Home/database.dart';
 import 'package:sart/Home/favoritePage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-var midSlider, linkList, filterData;
+var linkList, filterData, slider;
 
 class HomePage extends StatefulWidget {
   @override
@@ -49,13 +49,17 @@ class _HomePageState extends State<HomePage> {
     resultsMap = filterData.data();
     resultsMap.remove('itemID');
     filterList = resultsMap.entries.map((e) => e.value).toList();
-    print(filterList.length);
-    print(filterList[1]);
-    print("Hola");
+
     setState(() {
       loading = false;
       activeFilter = true;
     });
+  }
+
+  shareLink() async {
+    var url = await _webViewController.getUrl();
+    Share.share(
+        url.toString() + " Join us at SART to shop more products like this");
   }
 
   onSearchTextChanged(String text) {
@@ -64,8 +68,15 @@ class _HomePageState extends State<HomePage> {
 
   void getData() async {
     await Firebase.initializeApp();
-    midSlider = await FirebaseFirestore.instance.collection("MidSlider").get();
     linkList = await FirebaseFirestore.instance.collection("AllLinks").get();
+    slider = await FirebaseFirestore.instance
+        .collection("Slider")
+        .doc("All_links")
+        .get();
+    slider = slider.data();
+    slider.remove('itemID');
+    slider = slider.entries.map((e) => e.value).toList();
+
     favo = await MySharedPreferences.getListData("favo");
     favoName = await MySharedPreferences.getListData("favoName");
     if (favo == null || favoName == null) {
@@ -74,7 +85,7 @@ class _HomePageState extends State<HomePage> {
       favo = await MySharedPreferences.getListData("favo");
       favoName = await MySharedPreferences.getListData("favoName");
     }
-    if (linkList != null && midSlider != null) {
+    if (linkList != null && slider != null) {
       setState(() {
         loading = false;
       });
@@ -201,12 +212,12 @@ class _HomePageState extends State<HomePage> {
                                     enlargeCenterPage: true,
                                     scrollDirection: Axis.horizontal,
                                   ),
-                                  itemCount: midSlider.docs.length,
+                                  itemCount: slider.length,
                                   itemBuilder: (BuildContext context, int index,
                                           int itemIndex) =>
                                       GestureDetector(
                                     onTap: () {
-                                      passedUrl = midSlider.docs[index]['url'];
+                                      passedUrl = slider[index][0];
                                       print(passedUrl);
                                       setState(() {
                                         activeWebView = true;
@@ -216,8 +227,7 @@ class _HomePageState extends State<HomePage> {
                                         width:
                                             MediaQuery.of(context).size.width,
                                         child: CachedNetworkImage(
-                                          imageUrl: midSlider.docs[index]
-                                              ["img"],
+                                          imageUrl: slider[index][1],
                                           fit: BoxFit.contain,
                                         )),
                                   ),
@@ -558,9 +568,6 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
@@ -573,7 +580,7 @@ class _HomePageState extends State<HomePage> {
                                         options: CarouselOptions(
                                           enlargeCenterPage: true,
                                           autoPlay: true,
-                                          viewportFraction: 0.9,
+                                          viewportFraction: 0.95,
                                           autoPlayInterval:
                                               Duration(seconds: 2),
                                           autoPlayAnimationDuration:
@@ -670,6 +677,9 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             GestureDetector(
+                              onLongPress: () {
+                                shareLink();
+                              },
                               onTap: () {
                                 _webViewController.reload();
                               },
@@ -1064,14 +1074,14 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         padding: EdgeInsets.only(left: 30, bottom: 33),
                         child: Icon(
-                          Icons.list,
-                          size: (34),
-                          color: Colors.grey[600],
+                          Icons.menu,
+                          size: (30),
+                          color: Colors.grey,
                         ),
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.only(left: 24, bottom: 39),
+                      padding: EdgeInsets.only(left: 24, bottom: 41),
                       child: SvgPicture.asset(
                         "assets/images/Sart 2.svg",
                         color: Colors.grey[700],

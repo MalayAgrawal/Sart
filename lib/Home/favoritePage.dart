@@ -3,6 +3,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_link_preview/flutter_link_preview.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sart/Home/database.dart';
+import 'package:share/share.dart';
 
 class favoPage extends StatefulWidget {
   @override
@@ -27,6 +28,12 @@ class _favoPageState extends State<favoPage> {
     setState(() {
       loading = false;
     });
+  }
+
+  shareLink() async {
+    var url = await _webViewController.getUrl();
+    Share.share(
+        url.toString() + " Join us at SART to shop more products like this");
   }
 
   Future<bool> backButtonControl() {
@@ -199,6 +206,9 @@ class _favoPageState extends State<favoPage> {
                               ),
                             ),
                             GestureDetector(
+                              onLongPress: () {
+                                shareLink();
+                              },
                               onTap: () {
                                 _webViewController.reload();
                               },
