@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:sart/guidepage.dart';
 import 'package:share/share.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sart/Home/database.dart';
 import 'package:sart/Home/favoritePage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-var linkList, filterData, slider;
+var filterData, slider, allLinks;
 
 class HomePage extends StatefulWidget {
   @override
@@ -49,7 +51,7 @@ class _HomePageState extends State<HomePage> {
     resultsMap = filterData.data();
     resultsMap.remove('itemID');
     filterList = resultsMap.entries.map((e) => e.value).toList();
-
+    filterList.shuffle();
     setState(() {
       loading = false;
       activeFilter = true;
@@ -68,7 +70,14 @@ class _HomePageState extends State<HomePage> {
 
   void getData() async {
     await Firebase.initializeApp();
-    linkList = await FirebaseFirestore.instance.collection("AllLinks").get();
+    allLinks = await FirebaseFirestore.instance
+        .collection("AllLinks1")
+        .doc("AllLinks")
+        .get();
+    allLinks = allLinks.data();
+    allLinks.remove('itemID');
+    allLinks = allLinks.entries.map((e) => e.value).toList();
+    allLinks.shuffle();
     slider = await FirebaseFirestore.instance
         .collection("Slider")
         .doc("All_links")
@@ -76,7 +85,7 @@ class _HomePageState extends State<HomePage> {
     slider = slider.data();
     slider.remove('itemID');
     slider = slider.entries.map((e) => e.value).toList();
-
+    slider.shuffle();
     favo = await MySharedPreferences.getListData("favo");
     favoName = await MySharedPreferences.getListData("favoName");
     if (favo == null || favoName == null) {
@@ -85,18 +94,27 @@ class _HomePageState extends State<HomePage> {
       favo = await MySharedPreferences.getListData("favo");
       favoName = await MySharedPreferences.getListData("favoName");
     }
-    if (linkList != null && slider != null) {
+    if (allLinks != null && slider != null) {
       setState(() {
         loading = false;
       });
     }
   }
 
-  Future<bool> backButtonControl() {
+  Future<bool> backButtonControl() async {
     if (activeWebView) {
-      setState(() {
-        activeWebView = false;
-      });
+      var url = await _webViewController.getUrl();
+      var url1 = url.toString().replaceAll('/', '');
+      var url2 = passedUrl.replaceAll('/', '');
+      print(url1);
+      print(url2);
+      if (url2 == url1) {
+        setState(() {
+          activeWebView = false;
+        });
+      } else {
+        _webViewController.goBack();
+      }
     } else if (activeSearchBar) {
       setState(() {
         activeSearchBar = false;
@@ -105,7 +123,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         activeFilter = false;
       });
-    }
+    } else {}
   }
 
   @override
@@ -289,9 +307,9 @@ class _HomePageState extends State<HomePage> {
           child: ListView.builder(
               physics: BouncingScrollPhysics(),
               controller: _controller,
-              itemCount: linkList.docs.length,
+              itemCount: allLinks.length,
               itemBuilder: (BuildContext context, int index) {
-                return linkList.docs[index]['name']
+                return allLinks[index][0]
                         .toLowerCase()
                         .contains(textController.text.toLowerCase())
                     ? Column(
@@ -310,14 +328,14 @@ class _HomePageState extends State<HomePage> {
                                     height: 10,
                                   ),
                                   Text(
-                                    linkList.docs[index]['name'],
+                                    allLinks[index][0],
                                     style: TextStyle(fontSize: 20),
                                   ),
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        print(linkList.docs[index]['url']);
-                                        passedUrl = linkList.docs[index]['url'];
+                                        print(allLinks[index][1]);
+                                        passedUrl = allLinks[index][1];
                                         activeWebView = true;
                                       });
                                     },
@@ -330,7 +348,7 @@ class _HomePageState extends State<HomePage> {
                                         showMultimedia: false,
                                         useMultithread: true,
                                         cache: Duration(microseconds: 10),
-                                        url: linkList.docs[index]['url'],
+                                        url: allLinks[index][0],
                                       ),
                                     ),
                                   ),
@@ -534,7 +552,7 @@ class _HomePageState extends State<HomePage> {
                 child: ListView.builder(
                     physics: BouncingScrollPhysics(),
                     controller: _controller,
-                    itemCount: linkList.docs.length,
+                    itemCount: allLinks.length,
                     itemBuilder: (BuildContext context, int index) {
                       return Column(
                         children: [
@@ -557,12 +575,12 @@ class _HomePageState extends State<HomePage> {
                                         width: 20,
                                       ),
                                       Text(
-                                        linkList.docs[index]["name"],
+                                        allLinks[index][0],
                                         style: TextStyle(fontSize: 20),
                                       ),
                                       Spacer(),
-                                      favoIcon(linkList.docs[index]['url'],
-                                          linkList.docs[index]['name']),
+                                      favoIcon(allLinks[index][1],
+                                          allLinks[index][0]),
                                       SizedBox(
                                         width: 20,
                                       ),
@@ -571,8 +589,8 @@ class _HomePageState extends State<HomePage> {
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        print(linkList.docs[index]["url"]);
-                                        passedUrl = linkList.docs[index]["url"];
+                                        print(allLinks[index][1]);
+                                        passedUrl = allLinks[index][1];
                                         activeWebView = true;
                                       });
                                     },
@@ -588,20 +606,19 @@ class _HomePageState extends State<HomePage> {
                                           autoPlayCurve: Curves.decelerate,
                                           scrollDirection: Axis.horizontal,
                                         ),
-                                        itemCount:
-                                            linkList.docs[index]["img"].length,
+                                        itemCount: 5,
                                         itemBuilder: (BuildContext context,
                                                 int index1, int itemIndex) =>
                                             CachedNetworkImage(
                                                 fit: BoxFit.contain,
-                                                imageUrl: linkList.docs[index]
-                                                    ["img"][index1])),
+                                                imageUrl: allLinks[index]
+                                                    [index1 + 2])),
                                   ),
                                   GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        print(linkList.docs[index]["url"]);
-                                        passedUrl = linkList.docs[index]["url"];
+                                        print(allLinks[index][1]);
+                                        passedUrl = allLinks[index][1];
                                         activeWebView = true;
                                       });
                                     },
@@ -612,7 +629,7 @@ class _HomePageState extends State<HomePage> {
                                       padding: EdgeInsets.all(18),
                                       child: FlutterLinkPreview(
                                         cache: const Duration(days: 3),
-                                        url: linkList.docs[index]["url"],
+                                        url: allLinks[index][1],
                                       ),
                                     ),
                                   ),
@@ -671,23 +688,39 @@ class _HomePageState extends State<HomePage> {
                               child: Container(
                                 padding: EdgeInsets.all(10),
                                 child: Icon(
-                                  Icons.undo,
+                                  Icons.arrow_back_ios_outlined,
                                   color: Colors.grey[600],
                                 ),
                               ),
                             ),
                             GestureDetector(
-                              onLongPress: () {
-                                shareLink();
-                              },
                               onTap: () {
                                 _webViewController.reload();
                               },
                               child: Container(
-                                padding: EdgeInsets.all(20),
-                                child: SvgPicture.asset(
-                                  "assets/images/Sart 2.svg",
-                                  color: Colors.grey[700],
+                                padding: EdgeInsets.all(10),
+                                child: Icon(
+                                  Icons.refresh,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.all(20),
+                              child: SvgPicture.asset(
+                                "assets/images/Sart 2.svg",
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                shareLink();
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(10),
+                                child: Icon(
+                                  Icons.share,
+                                  color: Colors.grey[600],
                                 ),
                               ),
                             ),
@@ -698,7 +731,7 @@ class _HomePageState extends State<HomePage> {
                               child: Container(
                                 padding: EdgeInsets.all(10),
                                 child: Icon(
-                                  Icons.redo,
+                                  Icons.arrow_forward_ios_outlined,
                                   color: Colors.grey[600],
                                 ),
                               ),
@@ -987,12 +1020,72 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
-                  )
+                  ),
+                  Expanded(
+                    child: Container(
+                      child: Column(children: [
+                        SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: () {
+                            goToGuide();
+                          },
+                          child: Container(
+                              height: 50,
+                              width: 200,
+                              padding: EdgeInsets.only(
+                                right: 10,
+                                left: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30))),
+                              child: Center(
+                                  child: Text(
+                                "About Us",
+                                style: TextStyle(fontSize: 18),
+                              ))),
+                        ),
+                        SizedBox(
+                          height: 14,
+                        ),
+                        GestureDetector(
+                          onTap: () => openEmail('malay@gmail.com'),
+                          child: Container(
+                              height: 50,
+                              width: 200,
+                              padding: EdgeInsets.only(
+                                right: 10,
+                                left: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30))),
+                              child: Center(
+                                  child: Text(
+                                "Contact Us",
+                                style: TextStyle(fontSize: 18),
+                              ))),
+                        ),
+                      ]),
+                    ),
+                  ),
                 ],
               ),
             ),
           )
         : Container();
+  }
+
+  goToGuide() async {
+    await MySharedPreferences.setForFirstTimeLogin('var', true);
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => GuidePage()));
+  }
+
+  openEmail(email) async {
+    await launch('mailto:sart.vriksh.dev@gmail.com');
   }
 
   Widget favoIcon(favoUrl, favoNa) {

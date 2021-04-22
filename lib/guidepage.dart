@@ -8,16 +8,21 @@ class GuidePage extends StatefulWidget {
 }
 
 class _GuidePageState extends State<GuidePage> {
-  bool whitepage = true;
+  bool whitepage = true, a;
 
   checkForFir() async {
-    var a = await MySharedPreferences.getForFirstTimeLogin('var');
+    a = await MySharedPreferences.getForFirstTimeLogin('var');
     print("\n\n\n");
     print(a);
     if (a == false) {
-      Navigator.push(
+      Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => HomePage()));
+    } else if (a == null) {
+      setState(() {
+        whitepage = false;
+      });
     } else {
+      MySharedPreferences.setForFirstTimeLogin('var', false);
       setState(() {
         whitepage = false;
       });
@@ -36,6 +41,23 @@ class _GuidePageState extends State<GuidePage> {
           ? Container()
           : PageView(
               children: [
+                Stack(
+                  children: [
+                    Center(
+                        child: Image.asset(
+                      "assets/images/guide0.png",
+                    )),
+                    Positioned(
+                        bottom: 30,
+                        right: 30,
+                        child: a
+                            ? Container()
+                            : Text(
+                                "Swipe Left to\n Agree and Continue",
+                                style: TextStyle(color: Colors.grey),
+                              ))
+                  ],
+                ),
                 Stack(
                   children: [
                     Center(

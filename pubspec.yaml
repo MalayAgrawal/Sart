@@ -30,6 +30,7 @@ dependencies:
   flutter_link_preview: 
   cloud_firestore:
   firebase_core :
+  url_launcher: ^6.0.3
   cached_network_image: ^2.5.1
   shared_preferences: ^2.0.5
   flutter_inappwebview: ^5.1.0+4
