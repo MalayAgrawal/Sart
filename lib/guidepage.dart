@@ -60,25 +60,10 @@ class _GuidePageState extends State<GuidePage> {
                 ),
                 Stack(
                   children: [
-                    Center(
-                        child: Image.asset(
-                      "assets/images/guide1.png",
-                    )),
+                    Center(child: Image.asset("assets/images/guide1.png")),
                     Positioned(
-                        bottom: 30,
-                        right: 30,
-                        child: Text(
-                          "Swipe Left",
-                          style: TextStyle(color: Colors.grey),
-                        ))
-                  ],
-                ),
-                Stack(
-                  children: [
-                    Center(child: Image.asset("assets/images/guide2.png")),
-                    Positioned(
-                        bottom: 50,
-                        right: 50,
+                        bottom: 10,
+                        right: 20,
                         child: GestureDetector(
                           onTap: () {
                             MySharedPreferences.setForFirstTimeLogin(

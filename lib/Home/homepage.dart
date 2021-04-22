@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:sart/guidepage.dart';
 import 'package:share/share.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -26,7 +27,6 @@ class _HomePageState extends State<HomePage> {
       loading = true,
       sidemenu = false,
       activeFilter = false,
-      activeWebView = false,
       activeSearchBar = false;
   Map<String, dynamic> resultsMap;
   int findex = 2;
@@ -102,20 +102,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<bool> backButtonControl() async {
-    if (activeWebView) {
-      var url = await _webViewController.getUrl();
-      var url1 = url.toString().replaceAll('/', '');
-      var url2 = passedUrl.replaceAll('/', '');
-      print(url1);
-      print(url2);
-      if (url2 == url1) {
-        setState(() {
-          activeWebView = false;
-        });
-      } else {
-        _webViewController.goBack();
-      }
-    } else if (activeSearchBar) {
+    if (activeSearchBar) {
       setState(() {
         activeSearchBar = false;
       });
@@ -236,10 +223,7 @@ class _HomePageState extends State<HomePage> {
                                       GestureDetector(
                                     onTap: () {
                                       passedUrl = slider[index][0];
-                                      print(passedUrl);
-                                      setState(() {
-                                        activeWebView = true;
-                                      });
+                                      urlLauncher();
                                     },
                                     child: Container(
                                         width:
@@ -293,8 +277,6 @@ class _HomePageState extends State<HomePage> {
                   )
                 : Container(),
             sideMenu(),
-//Web View
-            webView()
           ],
         ),
       ),
@@ -333,11 +315,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        print(allLinks[index][1]);
-                                        passedUrl = allLinks[index][1];
-                                        activeWebView = true;
-                                      });
+                                      print(allLinks[index][1]);
+                                      passedUrl = allLinks[index][1];
+                                      urlLauncher();
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -403,11 +383,9 @@ class _HomePageState extends State<HomePage> {
                                     children: [
                                       GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            print(filterList[index][1]);
-                                            passedUrl = filterList[index][1];
-                                            activeWebView = true;
-                                          });
+                                          print(filterList[index][1]);
+                                          passedUrl = filterList[index][1];
+                                          urlLauncher();
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -426,11 +404,9 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            print(filterList[index][1]);
-                                            passedUrl = filterList[index][1];
-                                            activeWebView = true;
-                                          });
+                                          print(filterList[index][1]);
+                                          passedUrl = filterList[index][1];
+                                          urlLauncher();
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.only(
@@ -470,11 +446,9 @@ class _HomePageState extends State<HomePage> {
                                     children: [
                                       GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            print(filterList[index][1]);
-                                            passedUrl = filterList[index][1];
-                                            activeWebView = true;
-                                          });
+                                          print(filterList[index][1]);
+                                          passedUrl = filterList[index][1];
+                                          urlLauncher();
                                         },
                                         child: Padding(
                                           padding: const EdgeInsets.only(
@@ -508,11 +482,9 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            print(filterList[index][1]);
-                                            passedUrl = filterList[index][1];
-                                            activeWebView = true;
-                                          });
+                                          print(filterList[index][1]);
+                                          passedUrl = filterList[index][1];
+                                          urlLauncher();
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -588,11 +560,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        print(allLinks[index][1]);
-                                        passedUrl = allLinks[index][1];
-                                        activeWebView = true;
-                                      });
+                                      print(allLinks[index][1]);
+                                      passedUrl = allLinks[index][1];
+                                      urlLauncher();
                                     },
                                     child: CarouselSlider.builder(
                                         options: CarouselOptions(
@@ -616,11 +586,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   GestureDetector(
                                     onTap: () {
-                                      setState(() {
-                                        print(allLinks[index][1]);
-                                        passedUrl = allLinks[index][1];
-                                        activeWebView = true;
-                                      });
+                                      print(allLinks[index][1]);
+                                      passedUrl = allLinks[index][1];
+                                      urlLauncher();
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -644,110 +612,6 @@ class _HomePageState extends State<HomePage> {
                       );
                     })),
           );
-  }
-
-  Widget webView() {
-    return activeWebView
-        ? Stack(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(bottom: 60),
-                child: InAppWebView(
-                  initialUrlRequest: URLRequest(url: Uri.parse(passedUrl)),
-                  onWebViewCreated: (InAppWebViewController controller) {
-                    _webViewController = controller;
-                  },
-                  onProgressChanged:
-                      (InAppWebViewController controller, int progress) {
-                    setState(() {
-                      loadingbar = progress / 100;
-                    });
-                  },
-                ),
-              ),
-              Positioned(
-                  bottom: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Color(0xffcecece),
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(25),
-                            topRight: Radius.circular(25))),
-                    height: 80,
-                    width: MediaQuery.of(context).size.width,
-                    child: Column(
-                      children: [
-                        Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                _webViewController.goBack();
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                child: Icon(
-                                  Icons.arrow_back_ios_outlined,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                _webViewController.reload();
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                child: Icon(
-                                  Icons.refresh,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(20),
-                              child: SvgPicture.asset(
-                                "assets/images/Sart 2.svg",
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                shareLink();
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                child: Icon(
-                                  Icons.share,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                _webViewController.goForward();
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(10),
-                                child: Icon(
-                                  Icons.arrow_forward_ios_outlined,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Spacer(),
-                        LinearProgressIndicator(
-                          value: loadingbar,
-                        ),
-                      ],
-                    ),
-                  )),
-            ],
-          )
-        : Container();
   }
 
   Widget sideMenu() {
@@ -1117,6 +981,23 @@ class _HomePageState extends State<HomePage> {
           },
           child: Icon(Icons.favorite_border));
     }
+  }
+
+  Future<void> urlLauncher() async {
+    await launchUrl(
+      passedUrl,
+      option: new CustomTabsOption(
+        toolbarColor: Colors.white60,
+        enableDefaultShare: true,
+        enableUrlBarHiding: true,
+        showPageTitle: true,
+        animation: new CustomTabsAnimation.fade(),
+        extraCustomTabs: <String>[
+          'org.mozilla.firefox',
+          'com.microsoft.emmx',
+        ],
+      ),
+    );
   }
 
   Widget header() {
