@@ -8,12 +8,14 @@ class GuidePage extends StatefulWidget {
 }
 
 class _GuidePageState extends State<GuidePage> {
-  bool whitepage = true, a;
+  bool whitepage = true;
+  var a;
 
   checkForFir() async {
     a = await MySharedPreferences.getForFirstTimeLogin('var');
     print("\n\n\n");
     print(a);
+
     if (a == false) {
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => HomePage()));
@@ -50,12 +52,12 @@ class _GuidePageState extends State<GuidePage> {
                     Positioned(
                         bottom: 30,
                         right: 30,
-                        child: a
-                            ? Container()
-                            : Text(
+                        child: a == null
+                            ? Text(
                                 "Swipe Left to\n Agree and Continue",
                                 style: TextStyle(color: Colors.grey),
-                              ))
+                              )
+                            : Container())
                   ],
                 ),
                 Stack(
@@ -75,7 +77,7 @@ class _GuidePageState extends State<GuidePage> {
                           },
                           child: Container(
                             padding: EdgeInsets.only(
-                                top: 10, bottom: 10, left: 20, right: 10),
+                                top: 8, bottom: 8, left: 20, right: 10),
                             decoration: BoxDecoration(
                                 border: Border.all(color: Colors.grey),
                                 borderRadius:
