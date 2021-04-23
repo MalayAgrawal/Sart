@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart';
 import 'package:sart/guidepage.dart';
-import 'package:share/share.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_link_preview/flutter_link_preview.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,7 +33,6 @@ class _HomePageState extends State<HomePage> {
   List<String> favo = [], favoName = [];
   List filterList;
   final ScrollController _controller = ScrollController();
-  InAppWebViewController _webViewController;
   TextEditingController textController = new TextEditingController();
 
   void getFilterData(a) async {
@@ -58,13 +55,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  shareLink() async {
-    var url = await _webViewController.getUrl();
-    Share.share(
-        url.toString() + " Join us at SART to shop more products like this");
-  }
-
   onSearchTextChanged(String text) {
+    print(allLinks);
     setState(() {});
   }
 
@@ -328,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                                         showMultimedia: false,
                                         useMultithread: true,
                                         cache: Duration(microseconds: 10),
-                                        url: allLinks[index][0],
+                                        url: allLinks[index][1],
                                       ),
                                     ),
                                   ),
